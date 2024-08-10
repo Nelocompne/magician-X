@@ -1,0 +1,54 @@
+version: '3'
+services:
+    unix:
+        volumes:
+            - 'xrayunix:/dev/shm'
+        image: alpine
+        command: 'rm /dev/shm/*'
+
+    wgcf-socks:
+        ports:
+            - '127.0.0.1:40001:40001'
+        restart: unless-stopped
+        image: 'zenexas/wgcf-socks:latest'
+
+    xray:
+        network_mode: host
+        restart: always
+        healthcheck:
+          test: curl -f https://domain/ # 将 domain 换成你自己部署的域名
+          interval: 1m30s
+          timeout: 30s
+          retries: 3
+        volumes:
+            - 'xrayunix:/dev/shm'
+            - './xray:/etc/xray'
+            - './out:/out'
+        image: teddysun/xray
+        depends_on:
+            - wgcf-socks
+            - unix
+
+    acme.sh:
+        network_mode: host
+        restart: always
+        volumes:
+            - './out:/acme.sh'
+        image: neilpang/acme.sh
+        command: daemon
+
+    nginx:
+        network_mode: host
+        restart: always
+        volumes:
+            - 'xrayunix:/dev/shm'
+            - './html:/var/www/html'
+            - './nginx.server.conf/:/etc/nginx/conf.d'
+            - '/etc/localtime:/etc/localtime'
+        image: nginx
+        depends_on:
+            - xray
+            - acme.sh
+
+volumes:
+    xrayunix:

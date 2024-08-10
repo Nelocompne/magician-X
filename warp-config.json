@@ -1,0 +1,55 @@
+{
+    "outbounds": [
+        {
+            "protocol": "socks",
+            "settings": {
+                "servers": [
+                    {
+                        "address": "127.0.0.1",
+                        "port": 40001
+                    }
+                ]
+            },
+            "tag": "warp_socks_out"
+        },
+        {
+            "protocol": "freedom",
+            "proxySettings": {
+                "tag": "warp_socks_out"
+            },
+            "settings": {
+                "domainStrategy": "UseIPv4"
+            },
+            "tag": "WARP-socks5-v4"
+        },
+        {
+            "protocol": "freedom",
+            "proxySettings": {
+                "tag": "warp_socks_out"
+            },
+            "settings": {
+                "domainStrategy": "UseIPv6"
+            },
+            "tag": "WARP-socks5-v6"
+        }
+    ],
+    "rules": [
+        {
+            "domain": [
+                "geosite:openai",
+                "ip.gs",
+                "ip.sb"
+            ],
+            "outboundTag": "warp_socks_out",
+            "type": "field"
+        },
+        {
+            "domain": [
+                "geosite:google",
+                "geosite:netflix"
+            ],
+            "outboundTag": "WARP-socks5-v6",
+            "type": "field"
+        }
+    ]
+}
